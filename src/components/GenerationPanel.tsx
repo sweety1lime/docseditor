@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { DOCUMENT_LABELS, type DocumentKey } from "@/lib/generateDocx";
 
 export function GenerationPanel({
@@ -21,19 +22,19 @@ export function GenerationPanel({
       {availableDocs.map((key) => (
         <span className="gen-doc" key={key}>
           {DOCUMENT_LABELS[key]}
-          <a className="link-btn" href={`/api/generate/${key}?format=docx`}>
+          <Link className="link-btn" href={`/api/generate/${key}?format=docx`}>
             .docx
-          </a>
+          </Link>
           {pdfSupported && (
-            <a className="link-btn" href={`/api/generate/${key}?format=pdf`}>
+            <Link className="link-btn" href={`/api/generate/${key}?format=pdf`}>
               .pdf
-            </a>
+            </Link>
           )}
         </span>
       ))}
-      <a className="btn" href="/api/generate/package" style={{ textDecoration: "none" }}>
+      <Link className="btn" href="/api/generate/package" style={{ textDecoration: "none" }}>
         Скачать всё ({pdfSupported ? "zip: docx+pdf" : "zip: docx"})
-      </a>
+      </Link>
     </div>
   );
 }

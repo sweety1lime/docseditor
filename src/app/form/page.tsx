@@ -10,6 +10,11 @@ import { HarmCategoriesSection } from "@/components/HarmCategoriesSection";
 import { GenerationPanel } from "@/components/GenerationPanel";
 import { LogoutButton } from "@/components/LogoutButton";
 
+// Reads live organization data on every request — must not be statically
+// prerendered at build time (that would freeze in whatever data existed
+// during the build and serve it to every visitor instead of live state).
+export const dynamic = "force-dynamic";
+
 export default async function FormPage() {
   const org = await getOrganization();
   const availableDocs = availableDocumentKeys();
