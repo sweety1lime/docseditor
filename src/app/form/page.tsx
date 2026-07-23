@@ -9,6 +9,7 @@ import { IspdnSection } from "@/components/IspdnSection";
 import { HarmCategoriesSection } from "@/components/HarmCategoriesSection";
 import { GenerationPanel } from "@/components/GenerationPanel";
 import { LogoutButton } from "@/components/LogoutButton";
+import Link from "next/link";
 
 // Reads live organization data on every request — must not be statically
 // prerendered at build time (that would freeze in whatever data existed
@@ -38,6 +39,7 @@ export default async function FormPage() {
         <a href="#pd-items">Перечень ПДн</a>
         <a href="#ispdn">Перечень ИСПДн</a>
         <a href="#harm-categories">Оценка вреда</a>
+        <Link href="/custom-templates">Свои шаблоны</Link>
       </nav>
 
       <OrgRequisitesForm initial={org}/>

@@ -22,10 +22,11 @@ model Organization {
   dpoName      String // Ответственный за ПДн (Иванов И.И.)
   updatedAt    DateTime @updatedAt
 
-  purposes       Purpose[]
-  pdItems        PdItem[]
-  ispdnItems     Ispdn[]
-  harmCategories HarmCategory[]
+  purposes        Purpose[]
+  pdItems         PdItem[]
+  ispdnItems      Ispdn[]
+  harmCategories  HarmCategory[]
+  customTemplates CustomTemplate[]
 }
 
 /// Блок "Цели обработки персональных данных" — Положение Прил.№1 / Политика Прил.№1
@@ -78,6 +79,28 @@ model HarmCategory {
   organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
 
   @@index([organizationId, order])
+}
+
+/// Произвольный .docx-шаблон, загруженный пользователем через UI (не часть
+/// фиксированного пакета из 7 документов). Набор полей заранее не известен —
+/// схема (`fields`) и текущие значения (`values`) хранятся как JSON, а не как
+/// отдельные реляционные колонки/таблицы, в отличие от Purpose/PdItem/Ispdn/
+/// HarmCategory, где набор полей фиксирован. См. src/lib/customTemplateTypes.ts
+/// для точной формы `fields`/`values`.
+model CustomTemplate {
+  id             Int      @id @default(autoincrement())
+  organizationId Int
+  name           String // отображаемое имя
+  fileName       String // исходное имя загруженного файла
+  fileBytes      Bytes // содержимое .docx как есть
+  fields         Json // DetectedFields: { scalars: string[]; loops: { name, columns: string[] }[] }
+  values         Json // CustomTemplateValues: { scalars: Record<string,string>; loops: Record<string, Record<string,string>[]> }
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@index([organizationId])
 }
 
 /// Блок "Перечень ИСПДн" — Положение Прил.№3
