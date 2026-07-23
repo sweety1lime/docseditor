@@ -1,0 +1,100 @@
+// Single-tenant data model: one Organization (singleton row, id = 1)
+// with three ordered child collections feeding the repeating appendix tables.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Organization {
+  id           Int      @id @default(1)
+  fullName     String // Наименование юридического лица (полное)
+  shortName    String // Наименование юридического лица (сокращённое)
+  address      String // Адрес юридического лица
+  inn          String
+  ogrn         String
+  email        String // Электронная почта
+  directorName String // Генеральный директор (Иванов И.И.)
+  dpoName      String // Ответственный за ПДн (Иванов И.И.)
+  updatedAt    DateTime @updatedAt
+
+  purposes       Purpose[]
+  pdItems        PdItem[]
+  ispdnItems     Ispdn[]
+  harmCategories HarmCategory[]
+}
+
+/// Блок "Цели обработки персональных данных" — Положение Прил.№1 / Политика Прил.№1
+model Purpose {
+  id                   Int    @id @default(autoincrement())
+  organizationId       Int
+  order                Int
+  purpose              String // Цель обработки персональных данных
+  subjectCategory      String // Наименование категории субъектов данных
+  dataComposition      String // Состав обрабатываемых персональных данных
+  processingMethod     String // Способ обработки персональных данных
+  retentionPeriod      String // Срок обработки и хранения персональных данных
+  destructionProcedure String // Порядок уничтожения персональных данных
+  actionsList          String // Перечень действий над персональными данными
+  legalBasis           String // Правовое основание обработки персональных данных
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@index([organizationId, order])
+}
+
+/// Блок "Перечень персональных данных" — Положение Прил.№2
+model PdItem {
+  id               Int    @id @default(autoincrement())
+  organizationId   Int
+  order            Int
+  subjectCategory  String // Категории Субъектов ПДн
+  dataCategories   String // Категории и перечень ПДн
+  purpose          String // Цель обработки
+  processingMethod String // Способ обработки ПДн
+  retentionPeriod  String // Сроки обработки и хранения
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@index([organizationId, order])
+}
+
+/// Блок "Оценка вреда субъектам ПДн" — Акт оценки вреда (Приказ Роскомнадзора №178).
+/// `answers` is a JSON-encoded Record<paramCode, boolean> — see src/lib/harmParams.ts
+/// for the fixed list of ~13 legally-defined checklist parameters this keys into.
+/// The summary harm degree (высокая/средняя/низкая) is derived from these answers,
+/// not stored separately, so it can never drift out of sync with the checklist.
+model HarmCategory {
+  id             Int    @id @default(autoincrement())
+  organizationId Int
+  order          Int
+  name           String // Категория субъектов персональных данных
+  answers        String // JSON: Record<HarmParamCode, boolean>
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@index([organizationId, order])
+}
+
+/// Блок "Перечень ИСПДн" — Положение Прил.№3
+model Ispdn {
+  id              Int    @id @default(autoincrement())
+  organizationId  Int
+  order           Int
+  name            String // Наименование ИСПДн
+  purpose         String // Назначение ИСПДн
+  volume          String // Объем обрабатываемых ПДн
+  subjectCategory String // Категория субъектов ПДн
+  dataComposition String // Состав ПДн
+  threatType      String // Тип угроз безопасности ПДн
+  protectionLevel String // Присвоенный уровень защищенности ИСПДн
+  location        String // Нахождение ИСПДн
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@index([organizationId, order])
+}
